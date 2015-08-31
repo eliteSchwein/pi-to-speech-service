@@ -24,9 +24,14 @@ Uses the Google TTS Service (online) or the pico2wave (offline) application.
   $ sudo apt-get install libpopt-dev; wget http://www.dr-bischoff.de/raspi/pico2wave.deb; sudo dpkg --install pico2wave.deb
 ```
 
-3. install omxplayer (optional)
+3. install sox to modify sound file (optional - set SOUND_MODIFY to True)
 ```
-  $ sudo apt-get install omxplayer
+  $ sudo apt-get install sox libsox-fmt-all
+```
+
+4. install mplayer (optional)
+```
+  $ sudo apt-get install mplayer
 ```
 
 
@@ -41,6 +46,7 @@ Parameter | Description | Optional | Default
 --------- | ------------| -------- | -------  
  -t   --text      |  text to translate                  | false  |
  -p   --provider  |  the tts provider (google or pico)  | true   | google
+ -d   --device    |  the output device (e.g. bluetooh)  |  true  |''
  -q   --quiet     |  do not print log messages          | true   | false
  -ns  --noStore   |  do not store the soundfile         | true   | false
  -u   --update    |  update soundfile if exist          | true   | false

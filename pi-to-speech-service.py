@@ -3,7 +3,7 @@
 #
 #===================================================================
 #	                PI-TO-SPEECH - SERVICE
-# 		             -- VERSION 1.0.0  --
+# 		                -- VERSION 1.0.1  --
 #
 #
 #
@@ -26,9 +26,12 @@
 #
 # 2. install Pico TTS
 # sudo apt-get install libpopt-dev; wget http://www.dr-bischoff.de/raspi/pico2wave.deb; sudo dpkg --install pico2wave.deb
-# 
-# 3. install omxplayer (optional)
-# sudo apt-get install omxplayer
+#
+# 3. install sox to modify sound file (optional - set SOUND_MODIFY to True)
+# sudo apt-get install sox libsox-fmt-all 
+#
+# 4. install mplayer (optional)
+# sudo apt-get install mplayer
 #
 #
 #
@@ -41,6 +44,7 @@
 #========================
 # -t   --text        text to translate                    required
 # -p   --provider    the tts provider (google or pico)    optional  defaullt: google
+# -d   --device      the output device (e.g. bluetooh)    optional  defaullt: ''
 # -q   --quiet       do not print log messages            optional  defaullt: false
 # -ns  --noStore     do not store the soundfile           optional  defaullt: false
 # -u   --update      update soundfile if exist            optional  defaullt: false
@@ -83,8 +87,8 @@
 #===================================================================
 #	IMPORTS
 #===================================================================
-import sys, os, io, re, urllib, urllib2, argparse, json, codecs
-from subprocess import call
+import sys, os, io, re, urllib, urllib2, argparse, json, codecs, shlex, shutil
+from subprocess import Popen, PIPE
 #from pprint import pprint
 
 #===================================================================
@@ -93,6 +97,13 @@ from subprocess import call
 SOUND_FILES_DIR= os.path.dirname(os.path.abspath(__file__)) + "/sounds/"
 SOUND_FILE_NAME="sound_%d"
 SOUND_INDEX_FILE=SOUND_FILES_DIR + "index.json"
+SOUND_PLAYER="mpg123" #Play sound with mplayer, mpg123
+
+#MODIFY SOUND FILE 
+SOUND_MODIFY=False
+SOUND_MODIFY_SILENCE_BEGIN=3 #silence at beginning of file
+SOUND_MODIFY_SILENCE_END=2 #silence at end of file
+
 GOOGLE_MAX_CHARS = 100 #max length of characters per translation request
 LANGUAGE = "de-DE" #language
 ENCODING = "UTF-8" #character encoding
@@ -111,11 +122,32 @@ PROVIDER = {
 
 
 def log(msg):
-   if app_args['verbose']:
+   if app_args['verbose'] and msg != '':
       print(msg)
    #end else
    
    return
+
+def util_sound_modify(srcFile):
+   if SOUND_MODIFY:	
+      log(' modify sound file')  
+      if srcFile.endswith('.mp3'):
+         modFile = srcFile + '-mod.mp3'
+      else:
+         modFile = srcFile + '-mod.wav'      
+      #end if				      
+      
+      util_sound_silence(srcFile,modFile)
+   #end if
+
+   return
+   
+def util_sound_silence(srcFile,modFile):   
+   cmd = 'sox "' + srcFile + '" "' + modFile + '" pad ' + str(SOUND_MODIFY_SILENCE_BEGIN) + ' ' + str(SOUND_MODIFY_SILENCE_END)
+   util_cmd_execute(cmd)
+   util_file_move(modFile,srcFile)
+   return
+ 
 
 def util_text_SplitToParts(fullText):
    parts = re.split("[\,\;\.\:]", fullText)
@@ -162,6 +194,18 @@ def util_file_remove(filePath):
 
    return    
 
+def util_file_copy(srcPath,desPath):
+   log('copy file from: ' + srcPath + '  to: ' + desPath)
+   shutil.copy2(srcPath, desPath)   
+
+   return 
+
+def util_file_move(srcPath,desPath):
+   log('move file from: ' + srcPath + '  to: ' + desPath)
+   shutil.move(srcPath, desPath)   
+
+   return      
+   
     
 def util_file_count(dirPath,extension):
     fileCount = len([name for name in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, name)) and name.endswith(extension)])
@@ -197,16 +241,34 @@ def provider_google_create_data(fullText,filePath):
 def provider_pico_create_data(fullText,filePath):
    log("Retrieving pico sound for sentence: %s" % (fullText))
    
-   call(["pico2wave", "-l="+LANGUAGE, "-w", filePath, fullText + "                  "])
+   cmd = 'pico2wave -l ' + LANGUAGE + ' -w "' + filePath + '" "' + fullText + '"';
+   util_cmd_execute(cmd)
  
    return 
-   
-def output_sound(pathToFile):  
+
+def util_cmd_execute(cmd):
+   log('execute command: ' + cmd);
+   p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
+   output, error = p.communicate()
+   log(output)      
+   log(error)
+   #FNULL = open(os.devnull, 'w')
+   return
+
+def output_sound(pathToFile, device=''):  
    if util_file_is_valid(pathToFile):
-      log("run sound: " + pathToFile)
-      FNULL = open(os.devnull, 'w')
-      call(["mpg123","-q", pathToFile],stdout=FNULL)      
-      #call(["omxplayer",pathToFile],stdout=FNULL)
+      cmd = SOUND_PLAYER      
+      if device != '':
+	 	     if SOUND_PLAYER == 'mplayer':
+	 	 	 	    cmd += ' -ao alsa:device="' + device + '"'
+	 	     else:
+	 	 	 	    cmd += ' -a "' + device + '"'
+	 	     #end if
+      #End if
+      
+      cmd += ' "' + pathToFile + '"'
+
+      util_cmd_execute(cmd)
    #end if
    
    return
@@ -249,7 +311,7 @@ def index_get_sound_info(text,fileExtension):
 	 soundInfo = None
 
 	 for s in data['sounds']:
-	 	 if s['text'] == text and s['path'].endswith(fileExtension):
+	 	 if s['text'].lower() == text.lower() and s['path'].endswith(fileExtension):
 	 	 	 	 soundInfo = s
 	 	 	 	 log('index found: ' + s['path'])
 	 	 	 	 break   
@@ -274,10 +336,10 @@ def init_app():
    
    return
    
-def create_sound_file_path(storeFile,fileExt):
+def create_sound_file_path(fileExt,temp):
    dirPath = SOUND_FILES_DIR 
    
-   if not storeFile:
+   if temp:
       dirPath += 'tmp/'
       if not os.path.exists(dirPath):
          os.makedirs(dirPath)
@@ -312,30 +374,36 @@ def main():
    provider = app_args['provider']
    storeFile = app_args['storeFile']
    updateFile = app_args['updateFile']
+   outputDevice = app_args['device']
    
    fileExtension = PROVIDER.get(provider)['ext']
    
    soundInfo = index_get_sound_info(fullText,fileExtension)
-   
-   if soundInfo is None:      
-      newSoundFilePath = create_sound_file_path(storeFile,fileExtension)
-      create_sound_file(fullText,provider,newSoundFilePath)
-      if storeFile:
-          index_set_sound_info(fullText,newSoundFilePath)
-      #end if
-   elif updateFile:
-      newSoundFilePath = soundInfo['path']
-      create_sound_file(fullText,provider,newSoundFilePath)   
-   else:
-      newSoundFilePath = soundInfo['path']
-   #end else   
+     
+   if soundInfo is None or updateFile:       
+      newSoundFilePathTmp = create_sound_file_path(fileExtension,True)
+      newSoundFilePathFinal = create_sound_file_path(fileExtension,False)     
       
-   output_sound(newSoundFilePath)
-   
-   if soundInfo is None and not storeFile:
-      util_file_remove(newSoundFilePath)   
-   #end if
+      create_sound_file(fullText,provider,newSoundFilePathTmp)
+        
+      util_sound_modify(newSoundFilePathTmp)
 
+      util_file_move(newSoundFilePathTmp, newSoundFilePathFinal)
+   	           
+      if storeFile:
+          index_set_sound_info(fullText,newSoundFilePathFinal)
+      #end if      
+   else:
+      newSoundFilePathFinal = soundInfo['path']
+   #end if   
+      
+   #ouput sound with player
+   output_sound(newSoundFilePathFinal,outputDevice)
+
+   if soundInfo is None and not storeFile:
+      util_file_remove(newSoundFilePathFinal) #cleanup  
+   #end if   
+   
    return
 
 
@@ -349,8 +417,9 @@ PARSER = argparse.ArgumentParser(prog='text to speech', usage='%(prog)s [options
 # Add arguments
 PARSER.add_argument('-t', '--text', required=True,  help='text to translate')
 PARSER.add_argument('-p', '--provider', nargs='?', default='google', choices=['google','pico'], help='the tts provider')
+PARSER.add_argument('-d', '--device', nargs='?', default='', help='the output device (e. g. bluetooth')
 PARSER.add_argument('-q', '--quiet', action='store_false', dest='verbose', default=True, help='do not print log messages')
-PARSER.add_argument('-ns', '--noStore', action='store_false', dest='storeFile', default=True, help='do not store the soundfile')
+PARSER.add_argument('-ns','--noStore', action='store_false', dest='storeFile', default=True, help='do not store the soundfile')
 PARSER.add_argument('-u', '--update', action='store_true', dest='updateFile', default=False, help='update soundfile if exist')
 
 #===================================================================
