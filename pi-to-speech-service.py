@@ -130,7 +130,7 @@ def log(msg):
 
 def util_sound_modify(srcFile):
    if SOUND_MODIFY:	
-      log(' modify sound file')  
+      log('modify sound file')  
       if srcFile.endswith('.mp3'):
          modFile = srcFile + '-mod.mp3'
       else:
@@ -382,7 +382,12 @@ def main():
      
    if soundInfo is None or updateFile:       
       newSoundFilePathTmp = create_sound_file_path(fileExtension,True)
-      newSoundFilePathFinal = create_sound_file_path(fileExtension,False)     
+      
+      if soundInfo is None:
+          newSoundFilePathFinal = create_sound_file_path(fileExtension,False)
+      else:
+          newSoundFilePathFinal = soundInfo['path']
+      #end if     
       
       create_sound_file(fullText,provider,newSoundFilePathTmp)
         
