@@ -3,7 +3,7 @@
 #
 #===================================================================
 #	                PI-TO-SPEECH - SERVICE
-# 		                -- VERSION 1.0.1  --
+# 		                -- VERSION 1.0.2  --
 #
 #
 #
@@ -37,7 +37,7 @@
 #
 # Example start command
 #========================
-# python tts-service.py --text "Hello"
+# python pi-to-speech-service.py --text "Hello"
 # 
 #
 # Parameter
@@ -94,7 +94,7 @@ from subprocess import Popen, PIPE
 #===================================================================
 #	SETTINGS
 #===================================================================
-SOUND_FILES_DIR= os.path.dirname(os.path.abspath(__file__)) + "/sounds/"
+SOUND_FILES_DIR= os.path.dirname(os.path.abspath(__file__)) + "/m/"
 SOUND_FILE_NAME="sound_%d"
 SOUND_INDEX_FILE=SOUND_FILES_DIR + "index.json"
 SOUND_PLAYER="mpg123" #Play sound with mplayer, mpg123
@@ -222,8 +222,8 @@ def provider_google_create_data(fullText,filePath):
    for part in textParts:
       log("Retrieving google sound for sentence: %s" % (part))
    
-      baseurl="http://translate.google.com/translate_tts"
-      values={'q': part.encode(ENCODING), 'tl': LANGUAGE, 'ie': ENCODING, 'total': 1, 'idx': 0,'client': 't'}
+      baseurl="https://translate.google.com.vn/translate_tts"
+      values={'q': part.encode(ENCODING), 'tl': LANGUAGE, 'ie': ENCODING, 'total': 1, 'idx': 0,'client': 'tw-ob'}
 
       encodedQuery=urllib.urlencode(values)
       request=urllib2.Request(baseurl + "?" + encodedQuery)
@@ -431,5 +431,3 @@ PARSER.add_argument('-u', '--update', action='store_true', dest='updateFile', de
 #	START THE PROGRAMM
 #===================================================================
 main();
-
-                                                                                                                                                                            
