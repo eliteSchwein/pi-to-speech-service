@@ -376,6 +376,8 @@ def main():
    storeFile = app_args['storeFile']
    updateFile = app_args['updateFile']
    outputDevice = app_args['device']
+
+   print(app_args['language'])
    
    fileExtension = PROVIDER.get(provider)['ext']
    
@@ -422,7 +424,7 @@ app_args = None
 PARSER = argparse.ArgumentParser(prog='text to speech', usage='%(prog)s [options] text')
 # Add arguments
 PARSER.add_argument('-t', '--text', required=True,  help='text to translate')
-PARSER.add_argument('-p', '--provider', nargs='?', default='google', choices=['google','pico'], help='the tts provider')
+PARSER.add_argument('-p', '--provider', nargs='?', default='google', choices=['google', 'pico'], help='the tts provider')
 PARSER.add_argument('-d', '--device', nargs='?', default='', help='the output device (e. g. bluetooth')
 PARSER.add_argument('-l', '--language', nargs='?', default='en-US', help='sets the tts language')
 PARSER.add_argument('-q', '--quiet', action='store_false', dest='verbose', default=True, help='do not print log messages')
