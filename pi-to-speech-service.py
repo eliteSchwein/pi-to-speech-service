@@ -219,11 +219,11 @@ def provider_google_create_data(fullText,filePath):
    textParts = util_text_SplitToParts(fullText)
    
    fileToStore = open(filePath,"wb")
+
+   print(app_args['language'])
    
    for part in textParts:
       log("Retrieving google sound for sentence: %s" % (part))
-
-      print(app_args['language'])
    
       baseurl="https://translate.google.com.vn/translate_tts"
       values={'q': part.encode(ENCODING), 'tl': app_args['language'], 'ie': ENCODING, 'total': 1, 'idx': 0,'client': 'tw-ob'}
