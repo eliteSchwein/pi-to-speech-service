@@ -43,11 +43,12 @@
 # Parameter
 #========================
 # -t   --text        text to translate                    required
-# -p   --provider    the tts provider (google or pico)    optional  defaullt: google
-# -d   --device      the output device (e.g. bluetooh)    optional  defaullt: ''
-# -q   --quiet       do not print log messages            optional  defaullt: false
-# -ns  --noStore     do not store the soundfile           optional  defaullt: false
-# -u   --update      update soundfile if exist            optional  defaullt: false
+# -p   --provider    the tts provider (google or pico)    optional  default: google
+# -d   --device      the output device (e.g. bluetooh)    optional  default: ''
+# -q   --quiet       do not print log messages            optional  default: false
+# -ns  --noStore     do not store the soundfile           optional  default: false
+# -u   --update      update soundfile if exist            optional  default: false
+# -l   --language    sets the tts language                optional  default: 'en-US'
 #
 #
 #
@@ -223,7 +224,7 @@ def provider_google_create_data(fullText,filePath):
       log("Retrieving google sound for sentence: %s" % (part))
    
       baseurl="https://translate.google.com.vn/translate_tts"
-      values={'q': part.encode(ENCODING), 'tl': LANGUAGE, 'ie': ENCODING, 'total': 1, 'idx': 0,'client': 'tw-ob'}
+      values={'q': part.encode(ENCODING), 'tl': app_args['language'], 'ie': ENCODING, 'total': 1, 'idx': 0,'client': 'tw-ob'}
 
       encodedQuery=urllib.urlencode(values)
       request=urllib2.Request(baseurl + "?" + encodedQuery)
@@ -241,7 +242,7 @@ def provider_google_create_data(fullText,filePath):
 def provider_pico_create_data(fullText,filePath):
    log("Retrieving pico sound for sentence: %s" % (fullText))
    
-   cmd = 'pico2wave -l ' + LANGUAGE + ' -w "' + filePath + '" "' + fullText + '"';
+   cmd = 'pico2wave -l ' + app_args['language'] + ' -w "' + filePath + '" "' + fullText + '"';
    util_cmd_execute(cmd)
  
    return 
@@ -332,7 +333,7 @@ def init_app():
  
    if not os.path.exists(SOUND_INDEX_FILE):
       index_write_to_file({u'sounds':[]})
-   #end if  
+   #end if
    
    return
    
@@ -423,6 +424,7 @@ PARSER = argparse.ArgumentParser(prog='text to speech', usage='%(prog)s [options
 PARSER.add_argument('-t', '--text', required=True,  help='text to translate')
 PARSER.add_argument('-p', '--provider', nargs='?', default='google', choices=['google','pico'], help='the tts provider')
 PARSER.add_argument('-d', '--device', nargs='?', default='', help='the output device (e. g. bluetooth')
+PARSER.add_argument('-l', '--language', nargs='?', default='en-US', help='sets the tts language')
 PARSER.add_argument('-q', '--quiet', action='store_false', dest='verbose', default=True, help='do not print log messages')
 PARSER.add_argument('-ns','--noStore', action='store_false', dest='storeFile', default=True, help='do not store the soundfile')
 PARSER.add_argument('-u', '--update', action='store_true', dest='updateFile', default=False, help='update soundfile if exist')
