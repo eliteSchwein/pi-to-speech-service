@@ -222,6 +222,8 @@ def provider_google_create_data(fullText,filePath):
    
    for part in textParts:
       log("Retrieving google sound for sentence: %s" % (part))
+
+      print(app_args['language'])
    
       baseurl="https://translate.google.com.vn/translate_tts"
       values={'q': part.encode(ENCODING), 'tl': app_args['language'], 'ie': ENCODING, 'total': 1, 'idx': 0,'client': 'tw-ob'}
@@ -376,8 +378,6 @@ def main():
    storeFile = app_args['storeFile']
    updateFile = app_args['updateFile']
    outputDevice = app_args['device']
-
-   print(app_args['language'])
    
    fileExtension = PROVIDER.get(provider)['ext']
    
