@@ -219,8 +219,6 @@ def provider_google_create_data(fullText,filePath):
    textParts = util_text_SplitToParts(fullText)
    
    fileToStore = open(filePath,"wb")
-
-   print(app_args['language'])
    
    for part in textParts:
       log("Retrieving google sound for sentence: %s" % (part))
