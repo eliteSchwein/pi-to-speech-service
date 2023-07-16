@@ -357,7 +357,7 @@ def create_sound_file(fullText,provider,filePath):
    
    log("Use provider: " + provider)
    log("Use Language: " + app_args['language'])
-   log("Use Text: " + app_args['text'].decode('unicode_escape'))
+   log("Use Text: " + app_args['text'])
    
    providerFunc = PROVIDER.get(provider)['func']
    
