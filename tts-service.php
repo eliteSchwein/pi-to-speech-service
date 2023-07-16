@@ -5,9 +5,9 @@
 	
 	
  # CONFIGURATION
- define("COMMAND_USER", 'sudo -u tts');
- define("COMMAND_FILE", '/opt/tts/pi-to-speech-service.py');
- define("COMMAND_EXEC", COMMAND_USER . ' ' . COMMAND_FILE);
+const COMMAND_USER = 'sudo -u pi python';
+const COMMAND_FILE = '~/pi-to-speech-service/pi-to-speech-service.py ';
+const COMMAND_EXEC = COMMAND_USER . ' ' . COMMAND_FILE;
 	
  init();
  
@@ -43,6 +43,10 @@
              $cmdParams .= ' --language="'.$headers['Tts-Language'].'"';
          }
 
+     if(array_key_exists('Tts-provider', $headers)) {
+         $cmdParams .= ' --provider="'.$headers['Tts-provider'].'"';
+     }
+
  		return $cmdParams;
  }
 
@@ -53,4 +57,3 @@
 		$output = shell_exec($command);
 		echo $output;	
  }
-?>
