@@ -24,15 +24,15 @@
 		if($_SERVER['REQUEST_METHOD'] === 'POST') {
             $queryParams['text'] = @file_get_contents('php://input');
 		}else{
-				if(!isset($queryParams['text'])) {
-					$queryParams['text'] =  urldecode($paramQuery);
+            if(!isset($queryParams['text'])) {
+                $queryParams['text'] =  urldecode($paramQuery);
   			}
 		}
 
         $headers = getallheaders();
 	
 	    $cmdParams = "";
-		foreach($queryParams as $key => $value) {			
+		foreach($queryParams as $key => $value) {
 			$cmdParams .= (strlen($key)>2?' --' : ' -').$key;
 			if($value != ''){
 				$cmdParams .= '="'.$value.'"';
@@ -40,7 +40,7 @@
 		}
 
          if(array_key_exists('Tts-Language', $headers)) {
-             $cmdParams['language'] = $headers['Tts-Language'];
+             $cmdParams .= '--language="'.$headers['Tts-Language'].'"';
          }
 
  		return $cmdParams;
