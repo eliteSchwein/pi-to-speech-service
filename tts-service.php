@@ -40,7 +40,7 @@
 		}
 
          if(array_key_exists('Tts-Language', $headers)) {
-             $cmdParams .= '--language="'.$headers['Tts-Language'].'"';
+             $cmdParams .= ' --language="'.$headers['Tts-Language'].'"';
          }
 
  		return $cmdParams;
@@ -48,7 +48,7 @@
 
  function executeTTS($cmdParams){	  
 		$command = escapeshellcmd(COMMAND_EXEC . $cmdParams);
-		#echo "execute command: " . $command;
+		echo "execute command: " . $command;
 		
 		$output = shell_exec($command);
 		echo $output;	
