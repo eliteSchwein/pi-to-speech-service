@@ -6,7 +6,7 @@
 	
  # CONFIGURATION
 const COMMAND_USER = 'sudo -u pi python';
-const COMMAND_FILE = '~/pi-to-speech-service/pi-to-speech-service.py ';
+const COMMAND_FILE = '/home/pi/pi-to-speech-service/pi-to-speech-service.py ';
 const COMMAND_EXEC = COMMAND_USER . ' ' . COMMAND_FILE;
 	
  init();
