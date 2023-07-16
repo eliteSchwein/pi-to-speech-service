@@ -373,7 +373,7 @@ def create_sound_file(fullText,provider,filePath):
 #===================================================================
 def main():
    init_app()
-   fullText = app_args['text'].decode('unicode_escape')
+   fullText = app_args['text']
    provider = app_args['provider']
    storeFile = app_args['storeFile']
    updateFile = app_args['updateFile']
